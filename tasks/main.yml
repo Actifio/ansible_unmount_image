@@ -1,0 +1,39 @@
+---
+
+# check for undefined critical variables
+- fail:
+    msg: the variable "{{ item }}" should be defined.
+  when: item == ''
+  with_items:
+    - "{{ act_pass }}"
+    - "{{ act_appname }}"
+    - "{{ act_vendorkey }}"
+    - "{{ act_user }}"
+
+# Generate a login token using the username, password and vendorkey
+- name: generating authentication token 
+  uri:
+    url: "{{ act_api_login }}"
+    validate_certs: no  
+  register: logintoken
+
+- name: session id is a fact
+  set_fact: 
+    act_sessionid: "{{ logintoken.json.sessionid }}"
+
+- name: get a list of mounted images
+  uri:
+    url: "{{ act_api_report }}/reportmountedimages?sessionid={{ act_sessionid }}"
+    validate_certs: no
+  register: mountedimages
+
+- name: unmount mounted images
+  uri:
+    url: "{{ act_api_task}}/unmountimage?image={{ item.MountImageName }}&sessionid={{ act_sessionid }}&nowait&delete&force"
+    validate_certs: no
+    method: POST
+  when: 
+    - item.SourceApp == act_appname 
+    - act_image_name == "all" or item.MountImageName == act_image_name
+    - act_label == '' or item.Label == act_label 
+  with_items: "{{ mountedimages.json.result }}"      

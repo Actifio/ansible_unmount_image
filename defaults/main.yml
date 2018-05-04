@@ -1,0 +1,19 @@
+---
+
+#Actifio Appliance
+act_appliance: ''
+
+# Actifio Username
+act_user: admin
+
+# Password
+act_pass: password
+
+# VendorKey, this can be requested from the Customer Success Engineering team via a case.
+act_vendorkey: ''
+
+act_appname: ''
+
+act_label: ''
+
+act_image_name: 'all'
