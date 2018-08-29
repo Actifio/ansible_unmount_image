@@ -1,38 +1,66 @@
-Role Name
-=========
+ansible_unmount_image
+======================
 
-A brief description of the role goes here.
-
-Requirements
-------------
-
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This is an ansible role to perform Actifio unmount images.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Following variables are accepted/required for this role. 
 
-Dependencies
-------------
+### Actifio Applinace Related 
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+| Variable Name    | Description | Required (Y/N) |
+|------------------|---|---|
+| act_appliance    | Actifio Appliance IP or FQDN. | Y               |
+| act_user         | Actifio username. This should be a Actifio user with System Manage priviledges | Y
+| act_pass         | Password for the Actifio User | Y
+| act_vendorkey    | Vendor key can be obtained by the customer through opening a Support Case with the CSE. | Y
+| act_appname 	   | Source Application name of images | Y
+| act_mount_host   | Mounted Host Name or VM name if you mounted VMware backup image to ESXi host as New VM | Y
+| act_image_name   | Image name (Image_XXXXXX) to be unmounted. Default is 'all' which means all images will be unmounted on the mounted host from the source application | N
+| act_label        | Label Name of images | N
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+### DB Application Image Example
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```
+- name: unmount db image
+  hosts: "{{ host_group }}"
+  become: yes
+  become_method: sudo
+  roles:
+    - { role: ansible_appaware_mount, act_appliance: my-actifio, act_user: ansible, act_pass: mypassword }
+  vars:
+    act_vendorkey: "{{ contact CSE to get yours }}"
+    act_mount_host: "my-dev-server"
+    act_appname: "BEAST"
+```
+
+### Mounted VM Image Example
+
+```
+- name: unmount vm image
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  roles:
+    - { role: ansible_appaware_mount, act_appliance: my-actifio, act_user: ansible, act_pass: mypassword }
+  vars:
+    act_vendorkey: "{{ contact CSE to get yours }}"
+    act_mount_host: "NewMounteVM"
+    act_appname: "SourceVM"
+```
 
 License
 -------
 
-BSD
+Copyright 2018 <Kosala Atapattu kosala.atapattu@actifio.com>
 
-Author Information
-------------------
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

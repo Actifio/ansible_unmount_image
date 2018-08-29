@@ -17,3 +17,5 @@ act_appname: ''
 act_label: ''
 
 act_image_name: 'all'
+
+act_mount_host: ''

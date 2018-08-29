@@ -9,6 +9,7 @@
     - "{{ act_appname }}"
     - "{{ act_vendorkey }}"
     - "{{ act_user }}"
+    - "{{ act_mount_host }}"
 
 # Generate a login token using the username, password and vendorkey
 - name: generating authentication token 
@@ -21,19 +22,44 @@
   set_fact: 
     act_sessionid: "{{ logintoken.json.sessionid }}"
 
-- name: get a list of mounted images
-  uri:
-    url: "{{ act_api_report }}/reportmountedimages?sessionid={{ act_sessionid }}"
-    validate_certs: no
-  register: mountedimages
+# try to ascertain the mounted hostID
+- name: search for host_id from name
+  block:
+    - uri:
+        url: "{{ act_api_info }}/lshost?sessionid={{ act_sessionid }}&filtervalue={{ 'hostname=' | urlencode }}{{ act_mount_host }}"
+        validate_certs: no
+      register: hostid
 
+    - set_fact:
+        mounted_host_id: "{{ hostid.json.result.0.id }}"
+      when: hostid is defined
+
+# Fail if the host could not be found
+- name: fail when the management or target host cannot be found
+  fail:
+    msg: "Unable to find a hostID with a matching description"
+  when: item == ''
+  with_items:
+    - "{{ hostid }}"
+
+# Filter mounted images with hostid
+- name: get mounted image list with the hostid
+  uri:
+    url: "{{ act_api_info }}/lsbackup?filtervalue={{ 'jobclass=mount' | urlencode }}{{ '&mountedhost=' | urlencode }}{{ mounted_host_id }}&sessionid={{ act_sessionid }}"
+    validate_certs: no
+  register: lsbackup
+
+# Debug
+- debug: var=lsbackup
+
+# Unmount mounted images
 - name: unmount mounted images
   uri:
-    url: "{{ act_api_task}}/unmountimage?image={{ item.MountImageName }}&sessionid={{ act_sessionid }}&nowait&delete&force"
+    url: "{{ act_api_task}}/unmountimage?image={{ item.backupname }}&sessionid={{ act_sessionid }}&nowait&delete&force"
     validate_certs: no
     method: POST
   when: 
-    - item.SourceApp == act_appname 
-    - act_image_name == "all" or item.MountImageName == act_image_name
-    - act_label == '' or item.Label == act_label 
-  with_items: "{{ mountedimages.json.result }}"      
+    - item.appname == act_appname 
+    - act_image_name == "all" or item.backupname == act_image_name
+    - act_label == '' or item.label == act_label 
+  with_items: "{{ lsbackup.json.result }}"      
