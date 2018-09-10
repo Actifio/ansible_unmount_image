@@ -6,7 +6,7 @@
   when: item == ''
   with_items:
     - "{{ act_pass }}"
-    - "{{ act_appname }}"
+#    - "{{ act_appname }}" # this is not mandatory. Unmount based on a label
     - "{{ act_vendorkey }}"
     - "{{ act_user }}"
     - "{{ act_mount_host }}"
