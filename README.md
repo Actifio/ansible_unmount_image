@@ -16,7 +16,7 @@ Following variables are accepted/required for this role.
 | act_user         | Actifio username. This should be a Actifio user with System Manage priviledges | Y
 | act_pass         | Password for the Actifio User | Y
 | act_vendorkey    | Vendor key can be obtained by the customer through opening a Support Case with the CSE. | Y
-| act_appname 	   | Source Application name of images | Y
+| act_appname 	   | Source Application name of images | N
 | act_mount_host   | Mounted Host Name or VM name if you mounted VMware backup image to ESXi host as New VM | Y
 | act_image_name   | Image name (Image_XXXXXX) to be unmounted. Default is 'all' which means all images will be unmounted on the mounted host from the source application | N
 | act_label        | Label Name of images | N
