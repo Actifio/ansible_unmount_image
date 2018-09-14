@@ -6,7 +6,6 @@
   when: item == ''
   with_items:
     - "{{ act_pass }}"
-#    - "{{ act_appname }}" # this is not mandatory. Unmount based on a label
     - "{{ act_vendorkey }}"
     - "{{ act_user }}"
     - "{{ act_mount_host }}"
@@ -40,7 +39,37 @@
     msg: "Unable to find a hostID with a matching description"
   when: item == ''
   with_items:
-    - "{{ hostid }}"
+    - "{{ mounted_host_id }}"
+
+# Get Image Name from act_appname
+- name: get image name from act_appname
+  block:
+    - name: get lsapplication
+      uri:
+        url: "{{ act_api_info }}/lsapplication?sessionid={{ act_sessionid }}&filtervalue={{ 'hostid=' | urlencode }}{{ mounted_host_id }}{{ '&appname=' | urlencode }}{{ act_appname | urlencode }}"
+        validate_certs: no
+      register: lsapplication
+
+    - name: set fact application id
+      set_fact:
+        appid: "{{ lsapplication.json.result[0].id }}"
+        
+    - name: fail if appid was not found.
+      fail:
+        msg: "{{ act_appname }} aaplication was not found."
+      when: appid == ''
+
+    - name: get lsapplication detail
+      uri:
+        url: "{{ act_api_info }}/lsapplication?sessionid={{ act_sessionid }}&argument={{ appid }}"
+        validate_certs: no
+      register: lsapplicationdetail
+
+    - name: set fact image name
+      set_fact:
+        act_image_name: "{{ lsapplicationdetail.json.result.backupname }}"
+
+  when: act_appname != ''
 
 # Filter mounted images with hostid
 - name: get mounted image list with the hostid
@@ -53,13 +82,12 @@
 - debug: var=lsbackup
 
 # Unmount mounted images
-- name: unmount mounted images
+- name: unmount mounted image 
   uri:
     url: "{{ act_api_task}}/unmountimage?image={{ item.backupname }}&sessionid={{ act_sessionid }}&nowait&delete&force"
     validate_certs: no
     method: POST
   when: 
-    - item.appname == act_appname 
-    - act_image_name == "all" or item.backupname == act_image_name
+    - act_image_name == "all" or item.backupname == act_image_name 
     - act_label == '' or item.label == act_label 
   with_items: "{{ lsbackup.json.result }}"      
