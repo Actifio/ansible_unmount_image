@@ -50,8 +50,23 @@ Example Playbook
     - { role: ansible_appaware_mount, act_appliance: my-actifio, act_user: ansible, act_pass: mypassword }
   vars:
     act_vendorkey: "{{ contact CSE to get yours }}"
-    act_mount_host: "NewMounteVM"
-    act_appname: "SourceVM"
+    act_mount_host: "NewMountedVM"
+    act_appname: "NewMountedVM"
+```
+
+### Other mounted image example
+
+```
+- name: unmount image with label
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  roles:
+    - { role: ansible_appaware_mount, act_appliance: my-actifio, act_user: ansible, act_pass: mypassword }
+  vars:
+    act_vendorkey: "{{ contact CSE to get yours }}"
+    act_mount_host: "MountedHost"
+    act_label: "Label"
 ```
 
 License
