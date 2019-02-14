@@ -87,6 +87,7 @@
     url: "{{ act_api_task}}/unmountimage?image={{ item.backupname }}&sessionid={{ act_sessionid }}&nowait&delete&force"
     validate_certs: no
     method: POST
+    timeout: 180
   when: 
     - act_image_name == "all" or item.backupname == act_image_name 
     - act_label == '' or item.label == act_label 
